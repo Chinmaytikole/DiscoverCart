@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Panel - AI Affiliate Hub{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Admin Panel</h1>
+                <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                    <i data-feather="arrow-left" class="me-1"></i>
+                    Back to Site
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Add Section -->
+        <div class="col-md-6 mb-4">
+            <div class="admin-section">
+                <div class="admin-header">
+                    <h5>
+                        <i data-feather="plus-circle" class="me-2"></i>
+                        Add New Section
+                    </h5>
+                </div>
+                <div class="admin-body">
+                    <form method="POST" action="{{ url_for('add_section') }}">
+                        <div class="mb-4">
+                            <label for="section_name" class="form-label">Section Name</label>
+                            <input type="text" class="form-control" id="section_name" name="name" required placeholder="e.g., Electronics, Home & Garden">
+                            <div class="form-text">AI will automatically generate a description for this section.</div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i data-feather="plus" class="me-1"></i>
+                            Add Section
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Product -->
+        <div class="col-md-6 mb-4">
+            <div class="admin-section">
+                <div class="admin-header" style="background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);">
+                    <h5>
+                        <i data-feather="package" class="me-2"></i>
+                        Add New Product
+                    </h5>
+                </div>
+                <div class="admin-body">
+                    <form method="POST" action="{{ url_for('add_product') }}">
+                        <div class="mb-3">
+                            <label for="product_name" class="form-label">Product Name</label>
+                            <input type="text" class="form-control" id="product_name" name="name" required placeholder="e.g., Samsung 55-inch 4K Smart TV">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="affiliate_link" class="form-label">Affiliate Link</label>
+                            <input type="url" class="form-control" id="affiliate_link" name="affiliate_link" required placeholder="https://...">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="section_id" class="form-label">Section</label>
+                            <select class="form-select" id="section_id" name="section_id" required>
+                                <option value="">Choose section...</option>
+                                {% for section in sections %}
+                                <option value="{{ section.id }}">{{ section.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="price" class="form-label">Price</label>
+                                <input type="text" class="form-control" id="price" name="price" placeholder="$299.99">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="image_url" class="form-label">Image URL</label>
+                                <input type="url" class="form-control" id="image_url" name="image_url" placeholder="https://...">
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success">
+                            <i data-feather="zap" class="me-1"></i>
+                            Generate AI Content & Add Product
+                        </button>
+                        <div class="form-text mt-2">AI will generate description, review, pros/cons, and SEO content.</div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Existing Sections -->
+    {% if sections %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i data-feather="folder" class="me-2"></i>
+                        Manage Sections ({{ sections|length }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for section in sections %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card border">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="card-title mb-0">{{ section.name }}</h6>
+                                        <span class="badge bg-primary">{{ section.products|length }} products</span>
+                                    </div>
+                                    <p class="card-text small text-muted">{{ section.description[:100] }}{% if section.description|length > 100 %}...{% endif %}</p>
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ url_for('section_view', slug=section.slug) }}" class="btn btn-outline-primary btn-sm">View</a>
+                                        <form method="POST" action="{{ url_for('delete_section', section_id=section.id) }}" class="d-inline" onsubmit="return confirm('Are you sure? This will delete the section but not its products.')">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Existing Products -->
+    {% if products %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i data-feather="package" class="me-2"></i>
+                        Manage Products ({{ products|length }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-modern">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Section</th>
+                                    <th>Price</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in products %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if product.image_url %}
+                                            <img src="{{ product.image_url }}" alt="{{ product.name }}" class="me-3 rounded" style="width: 50px; height: 50px; object-fit: cover;">
+                                            {% else %}
+                                            <div class="me-3 bg-light rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                                <i data-feather="image" style="width: 20px; height: 20px;"></i>
+                                            </div>
+                                            {% endif %}
+                                            <div>
+                                                <h6 class="mb-0">{{ product.name }}</h6>
+                                                <small class="text-muted">{{ product.short_description[:50] }}{% if product.short_description|length > 50 %}...{% endif %}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ product.section.name }}</span>
+                                    </td>
+                                    <td>
+                                        {% if product.price %}
+                                        <span class="badge bg-success">{{ product.price }}</span>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ product.created_at.strftime('%Y-%m-%d') }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ url_for('product_view', slug=product.slug) }}" class="btn btn-outline-primary">View</a>
+                                            <a href="{{ product.affiliate_link }}" target="_blank" rel="nofollow" class="btn btn-outline-secondary">Link</a>
+                                            <form method="POST" action="{{ url_for('delete_product', product_id=product.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this product?')">
+                                                <button type="submit" class="btn btn-outline-danger">Delete</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

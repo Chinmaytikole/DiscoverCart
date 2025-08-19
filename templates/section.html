@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}{{ section.name }} - AI Affiliate Hub{% endblock %}
+{% block meta_description %}{{ section.description }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Section Header -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-decoration-none">Home</a></li>
+                    <li class="breadcrumb-item active">{{ section.name }}</li>
+                </ol>
+            </nav>
+            
+            <div class="text-center">
+                <h1 class="display-4 fw-bold mb-3">{{ section.name }}</h1>
+                {% if section.description %}
+                <p class="lead text-muted mb-4">{{ section.description }}</p>
+                {% endif %}
+                <div class="text-muted">
+                    <i data-feather="package" class="me-2"></i>
+                    {{ products|length }} product{{ 's' if products|length != 1 else '' }} available
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Products Grid -->
+    {% if products %}
+    <div class="row g-4">
+        {% for product in products %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm hover-lift">
+                {% if product.image_url %}
+                <div class="card-img-wrapper">
+                    <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover;">
+                </div>
+                {% else %}
+                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 250px;">
+                    <i data-feather="image" class="text-muted" style="width: 48px; height: 48px;"></i>
+                </div>
+                {% endif %}
+                
+                <div class="card-body d-flex flex-column">
+                    <div class="mb-2">
+                        {% if product.price %}
+                        <span class="badge bg-success rounded-pill">{{ product.price }}</span>
+                        {% endif %}
+                        <small class="text-muted">{{ product.created_at.strftime('%b %d, %Y') }}</small>
+                    </div>
+                    
+                    <h5 class="card-title">{{ product.name }}</h5>
+                    <p class="card-text text-muted flex-grow-1">{{ product.short_description[:150] }}{% if product.short_description|length > 150 %}...{% endif %}</p>
+                    
+                    <div class="d-flex gap-2 mt-auto">
+                        <a href="{{ url_for('product_view', slug=product.slug) }}" class="btn btn-outline-primary flex-fill">
+                            <i data-feather="eye" class="me-1" style="width: 16px; height: 16px;"></i>
+                            Read Review
+                        </a>
+                        <a href="{{ product.affiliate_link }}" target="_blank" rel="nofollow" class="btn btn-primary">
+                            <i data-feather="external-link" style="width: 16px; height: 16px;"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="row">
+        <div class="col-12">
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i data-feather="package" style="width: 80px; height: 80px;" class="text-muted"></i>
+                </div>
+                <h3 class="text-muted mb-3">No Products Yet</h3>
+                <p class="text-muted mb-4">This section doesn't have any products yet. Check back soon for new reviews!</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+                        <i data-feather="home" class="me-2"></i>
+                        Go Home
+                    </a>
+                    <a href="{{ url_for('admin') }}" class="btn btn-primary">
+                        <i data-feather="plus" class="me-2"></i>
+                        Add Products
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Section Navigation -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card bg-light border-0">
+                <div class="card-body text-center">
+                    <h5 class="card-title mb-3">Explore Other Categories</h5>
+                    <div class="d-flex flex-wrap justify-content-center gap-2">
+                        {% for other_section in sections if other_section.slug != section.slug %}
+                        <a href="{{ url_for('section_view', slug=other_section.slug) }}" class="btn btn-outline-primary btn-sm">{{ other_section.name }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
