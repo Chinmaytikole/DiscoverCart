@@ -11,10 +11,11 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes (August 2025)
 
 - **Enhanced Design**: Implemented minimalistic aesthetic with modern blue color scheme
-- **Admin Security**: Added HTTP Basic Authentication to protect admin panel from unauthorized access
+- **Advanced Security**: Dual-layer admin protection with IP whitelisting + HTTP Basic Authentication
 - **GitHub AI Integration**: Switched from OpenAI to GitHub AI models for content generation
 - **Responsive Layout**: Improved mobile and desktop experience with clean typography
-- **Authentication System**: Secure admin credentials via environment variables
+- **IP Restriction**: Admin panel only accessible from whitelisted IP addresses
+- **Stealth Security**: Unauthorized access attempts see 404 errors instead of login prompts
 
 ## System Architecture
 
@@ -40,11 +41,12 @@ Preferred communication style: Simple, everyday language.
 - **Search Implementation**: Basic text search across product names, descriptions, and reviews
 
 ### Authentication and Authorization
-- **Admin Protection**: HTTP Basic Authentication protecting all admin routes
-- **Environment Variables**: ADMIN_USERNAME and ADMIN_PASSWORD for secure credential management
+- **Admin Protection**: HTTP Basic Authentication + IP whitelisting protecting all admin routes
+- **Environment Variables**: ADMIN_USERNAME, ADMIN_PASSWORD, and ADMIN_ALLOWED_IPS for secure access control
+- **IP Restriction**: Only specified IP addresses can access admin panel (returns 404 for unauthorized IPs)
 - **Protected Routes**: /admin, /admin/section/add, /admin/product/add, /admin/product/delete, /admin/section/delete
-- **Security Features**: Session management, secure logout, authentication decorators
-- **Default Credentials**: admin/admin123 (configurable via environment variables for deployment)
+- **Security Features**: Dual-layer security (IP + credentials), session management, secure logout
+- **Stealth Mode**: Unauthorized IPs see "Page Not Found" instead of login prompt (hides admin existence)
 
 ## External Dependencies
 
