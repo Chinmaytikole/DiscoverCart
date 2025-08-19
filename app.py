@@ -7,7 +7,6 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
-
 # Optional: load .env for local development
 from dotenv import load_dotenv
 load_dotenv()
