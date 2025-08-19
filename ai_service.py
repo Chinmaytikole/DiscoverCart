@@ -3,10 +3,13 @@ import json
 import logging
 from openai import OpenAI
 
-# the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
-# do not change this unless explicitly requested by the user
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "your-openai-api-key")
-openai_client = OpenAI(api_key=OPENAI_API_KEY)
+# Using GitHub AI models for content generation
+GITHUB_TOKEN = os.environ.get("OPENAI_API_KEY", "your-github-token")
+BASE_URL = "https://models.github.ai/inference"
+openai_client = OpenAI(
+    api_key=GITHUB_TOKEN,
+    base_url=BASE_URL
+)
 
 def generate_product_content(product_name, affiliate_link, section_name, price=None):
     """
@@ -33,7 +36,7 @@ def generate_product_content(product_name, affiliate_link, section_name, price=N
         """
         
         response = openai_client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4o-mini",
             messages=[
                 {
                     "role": "system",
@@ -79,7 +82,7 @@ def generate_section_description(section_name):
         prompt = f"Write a brief, engaging description (2-3 sentences) for a product category called '{section_name}' on an affiliate marketing website. Make it informative and appealing to potential shoppers."
         
         response = openai_client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4o-mini",
             messages=[
                 {
                     "role": "system",
