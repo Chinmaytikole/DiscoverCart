@@ -4,3 +4,5 @@ sqlalchemy
 openai
 werkzeug
 python-dotenv
+gunicorn
+
