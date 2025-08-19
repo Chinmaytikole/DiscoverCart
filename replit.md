@@ -8,6 +8,14 @@ AI Affiliate Hub is a Flask-based web application that generates comprehensive a
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes (August 2025)
+
+- **Enhanced Design**: Implemented minimalistic aesthetic with modern blue color scheme
+- **Admin Security**: Added HTTP Basic Authentication to protect admin panel from unauthorized access
+- **GitHub AI Integration**: Switched from OpenAI to GitHub AI models for content generation
+- **Responsive Layout**: Improved mobile and desktop experience with clean typography
+- **Authentication System**: Secure admin credentials via environment variables
+
 ## System Architecture
 
 ### Frontend Architecture
@@ -32,16 +40,19 @@ Preferred communication style: Simple, everyday language.
 - **Search Implementation**: Basic text search across product names, descriptions, and reviews
 
 ### Authentication and Authorization
-- **Current State**: No authentication system implemented
-- **Admin Access**: Direct route access without authentication (development setup)
-- **Security**: Basic Flask session management with CSRF protection considerations
+- **Admin Protection**: HTTP Basic Authentication protecting all admin routes
+- **Environment Variables**: ADMIN_USERNAME and ADMIN_PASSWORD for secure credential management
+- **Protected Routes**: /admin, /admin/section/add, /admin/product/add, /admin/product/delete, /admin/section/delete
+- **Security Features**: Session management, secure logout, authentication decorators
+- **Default Credentials**: admin/admin123 (configurable via environment variables for deployment)
 
 ## External Dependencies
 
 ### AI Services
-- **OpenAI API**: GPT-4o model integration for automated content generation
+- **GitHub AI Models**: Integration with GitHub's AI inference API at https://models.github.ai/inference
+- **Model**: GPT-4o-mini for content generation
 - **Content Types**: Product descriptions, reviews, pros/cons lists, SEO titles and meta descriptions
-- **API Configuration**: Environment-based API key management with fallback values
+- **API Configuration**: GitHub token-based authentication via OPENAI_API_KEY environment variable
 
 ### Frontend Libraries
 - **Bootstrap 5**: CSS framework via CDN for responsive design
