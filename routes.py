@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, flash, jsonify, session
+from flask import render_template, request, redirect, url_for, flash, jsonify, session, abort
 from app import app, db
 from models import Product, Section
 from ai_service import generate_product_content, generate_section_description
@@ -57,6 +57,11 @@ def search():
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
     """Admin login page"""
+    # Check IP access first
+    from auth import check_ip_access
+    if not check_ip_access():
+        abort(404)
+    
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
