@@ -1,0 +1,97 @@
+1. Website Setup (Custom, No WordPress)
+
+Use Flask (Python) or Node.js (JavaScript) on Replit to run your backend.
+
+Use HTML + CSS + JS (frontend) for your website design.
+
+Create pages/sections like:
+
+Home (Today’s Deals)
+
+Tech
+
+Furniture
+
+Fashion
+
+Etc.
+
+👉 Directory example:
+
+/static        → CSS, images, JS
+/templates     → HTML files
+app.py         → Flask backend (or index.js for Node)
+
+🔹 2. AI Blog Generation
+
+When you paste an affiliate link + product name, your backend calls an AI API (ChatGPT, Gemini, Claude) to generate content.
+
+The AI generates:
+
+Product description
+
+Review post
+
+Pros/Cons
+
+SEO title + meta description
+
+Blog body with your affiliate link inserted
+
+👉 Example (Flask backend):
+
+from flask import Flask, render_template, request
+import openai  # or Gemini/Claude API
+
+app = Flask(__name__)
+
+@app.route("/add", methods=["POST"])
+def add_product():
+    product_name = request.form["name"]
+    affiliate_link = request.form["link"]
+    
+    prompt = f"Write a detailed product review for {product_name}. Include overview, features, pros & cons, and add CTA with this affiliate link: {affiliate_link}."
+    
+    blog_post = openai.ChatCompletion.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}]
+    )
+    
+    content = blog_post["choices"][0]["message"]["content"]
+    return render_template("blog.html", content=content)
+
+🔹 3. Automation Flow
+
+You open an admin panel (custom page on your site).
+
+Paste: Product Name + Affiliate Link.
+
+AI generates a blog post automatically.
+
+The blog is saved in your database (SQLite, Firebase, or even JSON file).
+
+Frontend auto-shows it under the right section (Tech, Furniture, Deals).
+
+🔹 4. Example Workflow
+
+Add: Samsung 55-inch 4K Smart TV + Amazon affiliate link.
+
+Select Section: Tech → Electronics → TVs.
+
+AI generates blog with:
+
+Title: “Samsung 55-inch 4K Smart TV Review (2025) – Is It Worth It?”
+
+Sections: Overview, Features, Pros & Cons, Alternatives, Verdict.
+
+CTA Button: Check Price on Amazon (with your link).
+
+🔹 5. Bonus Automation
+
+Amazon/Flipkart API → Auto-fetch product price, images, rating.
+
+Scheduler (Cron job on Replit) → Auto-post “Today’s Deals” daily with AI text.
+
+Zapier/Make.com → Auto-publish new blogs to Twitter/Instagram.
+
+✅ End result → You’ll have your own AI-powered affiliate site hosted on Replit, where you just paste a link and AI handles the blogging.
