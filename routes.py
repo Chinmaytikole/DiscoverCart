@@ -1,9 +1,11 @@
-from flask import render_template, request, redirect, url_for, flash, jsonify
+from flask import render_template, request, redirect, url_for, flash, jsonify, session
 from app import app, db
 from models import Product, Section
 from ai_service import generate_product_content, generate_section_description
+from auth import requires_auth
 import re
 import json
+import os
 
 def create_slug(text):
     """Create URL-friendly slug from text"""
@@ -52,7 +54,34 @@ def search():
                          section={'name': f'Search Results for "{query}"', 'description': f'Found {len(products)} products matching your search.'}, 
                          products=products)
 
+@app.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
+    """Admin login page"""
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        admin_username = os.environ.get('ADMIN_USERNAME', 'admin')
+        admin_password = os.environ.get('ADMIN_PASSWORD', 'admin123')
+        
+        if username == admin_username and password == admin_password:
+            session['admin_authenticated'] = True
+            flash('Successfully logged in!', 'success')
+            return redirect(url_for('admin'))
+        else:
+            flash('Invalid credentials. Please try again.', 'error')
+    
+    return render_template('admin_login.html')
+
+@app.route('/admin/logout')
+def admin_logout():
+    """Admin logout"""
+    session.pop('admin_authenticated', None)
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('index'))
+
 @app.route('/admin')
+@requires_auth
 def admin():
     """Admin panel for managing products and sections"""
     sections = Section.query.all()
@@ -60,6 +89,7 @@ def admin():
     return render_template('admin.html', sections=sections, products=products)
 
 @app.route('/admin/section/add', methods=['POST'])
+@requires_auth
 def add_section():
     """Add a new section"""
     name = request.form.get('name', '').strip()
@@ -88,6 +118,7 @@ def add_section():
     return redirect(url_for('admin'))
 
 @app.route('/admin/product/add', methods=['POST'])
+@requires_auth
 def add_product():
     """Add a new product with AI-generated content"""
     name = request.form.get('name', '').strip()
@@ -145,6 +176,7 @@ def add_product():
     return redirect(url_for('admin'))
 
 @app.route('/admin/product/delete/<int:product_id>', methods=['POST'])
+@requires_auth
 def delete_product(product_id):
     """Delete a product"""
     product = Product.query.get_or_404(product_id)
@@ -154,6 +186,7 @@ def delete_product(product_id):
     return redirect(url_for('admin'))
 
 @app.route('/admin/section/delete/<int:section_id>', methods=['POST'])
+@requires_auth
 def delete_section(section_id):
     """Delete a section and all its products"""
     section = Section.query.get_or_404(section_id)
