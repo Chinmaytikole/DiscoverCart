@@ -28,34 +28,71 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('index') }}">Home</a>
-                    </li>
-                    {% if sections is defined %}
-                        {% for section in sections %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('section_view', slug=section.slug) }}">{{ section.name }}</a>
-                        </li>
-                        {% endfor %}
-                    {% endif %}
-                </ul>
-                
-                <div class="d-flex align-items-center">
-                    <!-- Search Form -->
-                    <form class="d-flex me-3" method="GET" action="{{ url_for('search') }}">
-                        <div class="input-group">
-                            <input class="form-control border-0 bg-light" type="search" placeholder="Search products..." name="q" value="{{ request.args.get('q', '') }}">
-                            <button class="btn btn-outline-secondary border-0" type="submit">
-                                <i data-feather="search"></i>
-                            </button>
-                        </div>
-                    </form>
-                    
-                    
+            <!-- Updated Navigation with Sliding Sections Bar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold" href="{{ url_for('index') }}">
+            <i data-feather="zap" class="me-2"></i>
+            DiscoverCart
+        </a>
+        
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('index') }}">Home</a>
+                </li>
+            </ul>
+            
+            <div class="d-flex align-items-center">
+                <!-- Search Form -->
+                <form class="d-flex me-3" method="GET" action="{{ url_for('search') }}">
+                    <div class="input-group">
+                        <input class="form-control border-0 bg-light" type="search" placeholder="Search products..." name="q" value="{{ request.args.get('q', '') }}">
+                        <button class="btn btn-outline-secondary border-0" type="submit">
+                            <i data-feather="search"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Sections Sliding Bar (only show if sections exist) -->
+{% if sections is defined and sections %}
+<div class="sections-bar bg-light border-bottom py-2">
+    <div class="container-fluid">
+        <div class="position-relative">
+            <!-- Scroll Left Button -->
+            <button class="btn btn-sm btn-outline-secondary position-absolute start-0 top-50 translate-middle-y scroll-btn scroll-left" style="z-index: 10; display: none;">
+                <i data-feather="chevron-left" style="width: 16px; height: 16px;"></i>
+            </button>
+            
+            <!-- Sections Container -->
+            <div class="sections-scroll-container d-flex align-items-center overflow-hidden" style="scroll-behavior: smooth;">
+                <div class="d-flex gap-2 py-2 px-4" id="sectionsContainer" style="transition: transform 0.3s ease;">
+                    {% for section in sections %}
+                    <a href="{{ url_for('section_view', slug=section.slug) }}" 
+                       class="btn btn-outline-primary btn-sm text-nowrap section-link {% if request.endpoint == 'section_view' and section.slug in request.url %}active{% endif %}">
+                        {{ section.name }}
+                        <span class="badge bg-primary ms-2">{{ section.products|length if section.products else 0 }}</span>
+                    </a>
+                    {% endfor %}
                 </div>
             </div>
+            
+            <!-- Scroll Right Button -->
+            <button class="btn btn-sm btn-outline-secondary position-absolute end-0 top-50 translate-middle-y scroll-btn scroll-right" style="z-index: 10;">
+                <i data-feather="chevron-right" style="width: 16px; height: 16px;"></i>
+            </button>
+        </div>
+    </div>
+</div>
+{% endif %}
         </div>
     </nav>
 
