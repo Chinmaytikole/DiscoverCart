@@ -72,7 +72,7 @@ def admin_login():
         if username == admin_username and password == admin_password:
             session['admin_authenticated'] = True
             flash('Successfully logged in!', 'success')
-            return redirect(url_for('admin'))
+            return redirect(url_for('chinmay_control_panel'))
         else:
             flash('Invalid credentials. Please try again.', 'error')
     
@@ -100,14 +100,14 @@ def add_section():
     name = request.form.get('name', '').strip()
     if not name:
         flash('Section name is required', 'error')
-        return redirect(url_for('admin'))
+        return redirect(url_for('chinmay_control_panel'))
     
     slug = create_slug(name)
     
     # Check if section already exists
     if Section.query.filter_by(slug=slug).first():
         flash('Section already exists', 'error')
-        return redirect(url_for('admin'))
+        return redirect(url_for('chinmay_control_panel'))
     
     # Generate description using AI
     description = generate_section_description(name)
@@ -120,7 +120,7 @@ def add_section():
     db.session.commit()
     
     flash(f'Section "{name}" added successfully!', 'success')
-    return redirect(url_for('admin'))
+    return redirect(url_for('chinmay_control_panel'))
 
 @app.route('/chinmay_control_panel/product/add', methods=['POST'])
 @requires_auth
@@ -134,12 +134,12 @@ def add_product():
     
     if not name or not affiliate_link or not section_id:
         flash('Product name, affiliate link, and section are required', 'error')
-        return redirect(url_for('admin'))
+        return redirect(url_for('chinmay_control_panel'))
     
     section = Section.query.get(section_id)
     if not section:
         flash('Invalid section selected', 'error')
-        return redirect(url_for('admin'))
+        return redirect(url_for('chinmay_control_panel'))
     
     slug = create_slug(name)
     counter = 1
@@ -178,7 +178,7 @@ def add_product():
     except Exception as e:
         flash(f'Error adding product: {str(e)}', 'error')
     
-    return redirect(url_for('admin'))
+    return redirect(url_for('chinmay_control_panel'))
 
 @app.route('/chinmay_control_panel/product/delete/<int:product_id>', methods=['POST'])
 @requires_auth
@@ -188,7 +188,7 @@ def delete_product(product_id):
     db.session.delete(product)
     db.session.commit()
     flash(f'Product "{product.name}" deleted successfully!', 'success')
-    return redirect(url_for('admin'))
+    return redirect(url_for('chinmay_control_panel'))
 
 @app.route('/chinmay_control_panel/section/delete/<int:section_id>', methods=['POST'])
 @requires_auth
@@ -199,12 +199,12 @@ def delete_section(section_id):
     # Check if section has products
     if section.products:
         flash(f'Cannot delete section "{section.name}" because it contains products. Delete products first.', 'error')
-        return redirect(url_for('admin'))
+        return redirect(url_for('chinmay_control_panel'))
     
     db.session.delete(section)
     db.session.commit()
     flash(f'Section "{section.name}" deleted successfully!', 'success')
-    return redirect(url_for('admin'))
+    return redirect(url_for('chinmay_control_panel'))
 
 # Error handlers
 @app.errorhandler(404)
