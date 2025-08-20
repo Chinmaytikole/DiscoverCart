@@ -1,4 +1,4 @@
-// Complete Main JavaScript for AI Affiliate Hub with Sliding Sections
+// Main JavaScript for AI Affiliate Hub
 
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize all functionality
@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeLoadingStates();
     initializeImageLazyLoading();
     initializeAnalytics();
-    initializeSectionsSlider(); // New sliding sections functionality
 });
 
 // Search functionality
@@ -174,228 +173,6 @@ function initializeAnalytics() {
     });
 }
 
-// NEW: Sections Sliding Bar JavaScript
-function initializeSectionsSlider() {
-    const sectionsContainer = document.getElementById('sectionsContainer');
-    const scrollLeftBtn = document.querySelector('.scroll-left');
-    const scrollRightBtn = document.querySelector('.scroll-right');
-    
-    if (!sectionsContainer) return;
-    
-    const scrollAmount = 200; // pixels to scroll
-    let isScrolling = false;
-    
-    // Function to update button visibility
-    function updateButtonVisibility() {
-        const container = sectionsContainer;
-        const maxScrollLeft = container.scrollWidth - container.clientWidth;
-        
-        // Show/hide left button
-        if (container.scrollLeft <= 0) {
-            if (scrollLeftBtn) scrollLeftBtn.style.display = 'none';
-        } else {
-            if (scrollLeftBtn) scrollLeftBtn.style.display = 'flex';
-        }
-        
-        // Show/hide right button
-        if (container.scrollLeft >= maxScrollLeft) {
-            if (scrollRightBtn) scrollRightBtn.style.display = 'none';
-        } else {
-            if (scrollRightBtn) scrollRightBtn.style.display = 'flex';
-        }
-        
-        // If no scrolling is needed, hide both buttons
-        if (maxScrollLeft <= 0) {
-            if (scrollLeftBtn) scrollLeftBtn.style.display = 'none';
-            if (scrollRightBtn) scrollRightBtn.style.display = 'none';
-        }
-    }
-    
-    // Smooth scroll function
-    function smoothScroll(element, target, duration) {
-        const start = element.scrollLeft;
-        const change = target - start;
-        const startTime = performance.now();
-        
-        function animateScroll(currentTime) {
-            const elapsed = currentTime - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            
-            // Easing function (ease-out)
-            const easing = 1 - Math.pow(1 - progress, 3);
-            element.scrollLeft = start + (change * easing);
-            
-            if (progress < 1) {
-                requestAnimationFrame(animateScroll);
-            } else {
-                isScrolling = false;
-                updateButtonVisibility();
-            }
-        }
-        
-        isScrolling = true;
-        requestAnimationFrame(animateScroll);
-    }
-    
-    // Scroll left button click
-    if (scrollLeftBtn) {
-        scrollLeftBtn.addEventListener('click', function() {
-            if (isScrolling) return;
-            
-            const newScrollLeft = Math.max(0, sectionsContainer.scrollLeft - scrollAmount);
-            smoothScroll(sectionsContainer, newScrollLeft, 300);
-            
-            // Add click animation
-            this.style.transform = 'scale(0.9)';
-            setTimeout(() => {
-                this.style.transform = '';
-            }, 150);
-        });
-    }
-    
-    // Scroll right button click
-    if (scrollRightBtn) {
-        scrollRightBtn.addEventListener('click', function() {
-            if (isScrolling) return;
-            
-            const maxScrollLeft = sectionsContainer.scrollWidth - sectionsContainer.clientWidth;
-            const newScrollLeft = Math.min(maxScrollLeft, sectionsContainer.scrollLeft + scrollAmount);
-            smoothScroll(sectionsContainer, newScrollLeft, 300);
-            
-            // Add click animation
-            this.style.transform = 'scale(0.9)';
-            setTimeout(() => {
-                this.style.transform = '';
-            }, 150);
-        });
-    }
-    
-    // Handle scroll events to update button visibility
-    sectionsContainer.addEventListener('scroll', function() {
-        if (!isScrolling) {
-            updateButtonVisibility();
-        }
-    });
-    
-    // Handle window resize
-    window.addEventListener('resize', function() {
-        updateButtonVisibility();
-    });
-    
-    // Handle mouse wheel scrolling on sections container
-    sectionsContainer.addEventListener('wheel', function(e) {
-        if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-            // Horizontal scrolling
-            return;
-        }
-        
-        // Convert vertical scroll to horizontal
-        if (e.deltaY !== 0) {
-            e.preventDefault();
-            const scrollDirection = e.deltaY > 0 ? 1 : -1;
-            const newScrollLeft = this.scrollLeft + (scrollDirection * 100);
-            
-            smoothScroll(this, Math.max(0, Math.min(this.scrollWidth - this.clientWidth, newScrollLeft)), 200);
-        }
-    }, { passive: false });
-    
-    // Touch/swipe support for mobile
-    let startX = 0;
-    let startScrollLeft = 0;
-    let isDragging = false;
-    
-    sectionsContainer.addEventListener('touchstart', function(e) {
-        startX = e.touches[0].clientX;
-        startScrollLeft = this.scrollLeft;
-        isDragging = true;
-    }, { passive: true });
-    
-    sectionsContainer.addEventListener('touchmove', function(e) {
-        if (!isDragging) return;
-        
-        const currentX = e.touches[0].clientX;
-        const diffX = startX - currentX;
-        this.scrollLeft = startScrollLeft + diffX;
-    }, { passive: true });
-    
-    sectionsContainer.addEventListener('touchend', function() {
-        isDragging = false;
-        updateButtonVisibility();
-    }, { passive: true });
-    
-    // Keyboard navigation for sections
-    document.addEventListener('keydown', function(e) {
-        if (document.activeElement.classList.contains('section-link')) {
-            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-                e.preventDefault();
-                
-                const currentLink = document.activeElement;
-                const allLinks = Array.from(document.querySelectorAll('.section-link'));
-                const currentIndex = allLinks.indexOf(currentLink);
-                
-                let nextIndex;
-                if (e.key === 'ArrowLeft') {
-                    nextIndex = currentIndex > 0 ? currentIndex - 1 : allLinks.length - 1;
-                } else {
-                    nextIndex = currentIndex < allLinks.length - 1 ? currentIndex + 1 : 0;
-                }
-                
-                const nextLink = allLinks[nextIndex];
-                nextLink.focus();
-                
-                // Scroll to make the focused link visible
-                const linkRect = nextLink.getBoundingClientRect();
-                const containerRect = sectionsContainer.getBoundingClientRect();
-                
-                if (linkRect.left < containerRect.left) {
-                    const scrollTarget = sectionsContainer.scrollLeft - (containerRect.left - linkRect.left) - 20;
-                    smoothScroll(sectionsContainer, Math.max(0, scrollTarget), 200);
-                } else if (linkRect.right > containerRect.right) {
-                    const scrollTarget = sectionsContainer.scrollLeft + (linkRect.right - containerRect.right) + 20;
-                    smoothScroll(sectionsContainer, scrollTarget, 200);
-                }
-            }
-        }
-    });
-    
-    // Auto-scroll to active section on page load
-    function scrollToActiveSection() {
-        const activeSection = document.querySelector('.section-link.active');
-        if (activeSection) {
-            setTimeout(() => {
-                const linkRect = activeSection.getBoundingClientRect();
-                const containerRect = sectionsContainer.getBoundingClientRect();
-                
-                // Calculate scroll position to center the active section
-                const linkCenter = activeSection.offsetLeft + (activeSection.offsetWidth / 2);
-                const containerCenter = sectionsContainer.clientWidth / 2;
-                const scrollTarget = linkCenter - containerCenter;
-                
-                smoothScroll(sectionsContainer, Math.max(0, scrollTarget), 500);
-            }, 100);
-        }
-    }
-    
-    // Initial setup
-    updateButtonVisibility();
-    scrollToActiveSection();
-    
-    // Add loading animation to section links
-    const sectionLinks = document.querySelectorAll('.section-link');
-    sectionLinks.forEach((link, index) => {
-        link.style.animationDelay = `${index * 0.1}s`;
-        
-        // Add hover effects
-        link.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-2px) scale(1.02)';
-        });
-        
-        link.addEventListener('mouseleave', function() {
-            this.style.transform = '';
-        });
-    });
-}
-
 // Utility functions
 function isValidUrl(string) {
     try {
@@ -517,9 +294,7 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         const openDropdowns = document.querySelectorAll('.dropdown-menu.show');
         openDropdowns.forEach(dropdown => {
-            if (typeof bootstrap !== 'undefined' && bootstrap.Dropdown) {
-                bootstrap.Dropdown.getInstance(dropdown.previousElementSibling)?.hide();
-            }
+            bootstrap.Dropdown.getInstance(dropdown.previousElementSibling)?.hide();
         });
     }
     
@@ -533,33 +308,4 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// Optimized resize handler for sections slider
-window.addEventListener('resize', debounce(function() {
-    const sectionsContainer = document.getElementById('sectionsContainer');
-    if (sectionsContainer) {
-        // Re-initialize sections slider visibility if needed
-        setTimeout(() => {
-            const scrollLeftBtn = document.querySelector('.scroll-left');
-            const scrollRightBtn = document.querySelector('.scroll-right');
-            
-            if (scrollLeftBtn && scrollRightBtn) {
-                // Update button visibility
-                const maxScrollLeft = sectionsContainer.scrollWidth - sectionsContainer.clientWidth;
-                
-                if (sectionsContainer.scrollLeft <= 0) {
-                    scrollLeftBtn.style.display = 'none';
-                } else {
-                    scrollLeftBtn.style.display = 'flex';
-                }
-                
-                if (sectionsContainer.scrollLeft >= maxScrollLeft || maxScrollLeft <= 0) {
-                    scrollRightBtn.style.display = 'none';
-                } else {
-                    scrollRightBtn.style.display = 'flex';
-                }
-            }
-        }, 100);
-    }
-}, 250));
-
-console.log('AI Affiliate Hub - Complete JavaScript initialized successfully! 🚀');
+console.log('AI Affiliate Hub - JavaScript initialized successfully! 🚀');
