@@ -54,7 +54,7 @@ def search():
                          section={'name': f'Search Results for "{query}"', 'description': f'Found {len(products)} products matching your search.'}, 
                          products=products)
 
-@app.route('/admin/login', methods=['GET', 'POST'])
+@app.route('/chinmay_control_panel/login', methods=['GET', 'POST'])
 def admin_login():
     """Admin login page"""
     # Check IP access first
