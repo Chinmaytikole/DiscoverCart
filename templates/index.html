@@ -113,8 +113,29 @@
                         <div class="mb-3">
                             <span class="badge bg-primary">{{ product.section.name }}</span>
                             {% if product.price %}
-                            <span class="badge bg-success ms-2">{{ product.price }}</span>
+                            {% set price_str = product.price|string %}
+                            {% set price_clean = price_str.replace('₹', '').replace(',', '').strip() %}
+                            {% set price = price_clean|float %}
+                            {% set discount = product.discount_percentage|float if product.discount_percentage else 0 %}
+
+                            {% if discount > 0 and price > 0 %}
+                                <!-- Original Price -->
+                                <span class="badge bg-danger ms-2" style="text-decoration: line-through;">
+                                    ₹{{ '%.0f' % price }}
+                                </span>
+                                <!-- Discounted Price -->
+                                <span class="badge bg-success ms-2">
+                                    ₹{{ '%.0f' % (price * (1 - discount / 100)) }}
+                                    ({{ discount|int }}% OFF)
+                                </span>
+                            {% else %}
+                                <!-- No discount, show original -->
+                                <span class="badge bg-success ms-2">
+                                    ₹{{ '%.0f' % price }}
+                                </span>
                             {% endif %}
+                        {% endif %}
+
                         </div>
                         <h5 class="card-title fw-semibold mb-3">{{ product.name }}</h5>
                         <p class="card-text text-muted flex-grow-1 small">{{ product.short_description[:100] }}{% if product.short_description|length > 100 %}...{% endif %}</p>
