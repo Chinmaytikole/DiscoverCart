@@ -34,21 +34,23 @@
         <div class="mb-3">
             <span class="badge bg-primary fs-6 mb-2">{{ product.section.name }}</span>
             {% if product.price %}
-            {% set price = product.price|float %}
-            {% set discount = product.discount_percentage|float %}
-            {% if discount > 0 %}
+            {% set price_str = product.price|string %}
+            {% set price_clean = price_str.replace('$', '').replace(',', '') %}
+            {% set price = price_clean|float %}
+            {% set discount = product.discount_percentage|float if product.discount_percentage else 0 %}
+            {% if discount > 0 and price > 0 %}
             <span class="badge bg-danger fs-6 mb-2 ms-2" style="text-decoration: line-through;">
-    ${{ '%.2f' % price }}
-</span>
-<span class="badge bg-success fs-6 mb-2 ms-2">
-    ${{ '%.2f' % (price * (1 - discount / 100)) }}
-    ({{ discount|int }}% OFF)
-</span>
-{% else %}
-<span class="badge bg-success fs-6 mb-2 ms-2">
-    {{ product.price }}
-</span>
-{% endif %}
+                ${{ '%.2f' % price }}
+            </span>
+            <span class="badge bg-success fs-6 mb-2 ms-2">
+                ${{ '%.2f' % (price * (1 - discount / 100)) }}
+                ({{ discount|int }}% OFF)
+            </span>
+            {% else %}
+            <span class="badge bg-success fs-6 mb-2 ms-2">
+                {{ product.price }}
+            </span>
+            {% endif %}
 {% endif %}
         </div>
             
