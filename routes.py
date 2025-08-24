@@ -5,7 +5,7 @@ from ai_service import generate_product_content, generate_section_description
 from auth import requires_auth
 import re
 import json
-import datetime
+from datetime import datetime, timezone
 import os
 
 def create_slug(text):
@@ -331,7 +331,7 @@ def update_product(product_id):
             flash(f'Product "{name}" updated successfully!', 'success')
         
         # Update timestamp
-        product.updated_at = datetime.utcnow()
+        product.updated_at = datetime.now(timezone.utc)
         
         db.session.commit()
         
@@ -376,7 +376,8 @@ def quick_edit_product(product_id):
         else:
             return jsonify({'success': False, 'error': 'Invalid field'})
         
-        product.updated_at = datetime.utcnow()
+        # Update timestamp
+        product.updated_at = datetime.now(timezone.utc)
         db.session.commit()
         
         return jsonify({'success': True, 'message': f'{field.title()} updated successfully'})
