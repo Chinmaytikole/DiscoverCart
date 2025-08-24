@@ -40,10 +40,10 @@
             {% set discount = product.discount_percentage|float if product.discount_percentage else 0 %}
             {% if discount > 0 and price > 0 %}
             <span class="badge bg-danger fs-6 mb-2 ms-2" style="text-decoration: line-through;">
-                ${{ '%.2f' % price }}
+                ₹{{ '%.2f' % price }}
             </span>
             <span class="badge bg-success fs-6 mb-2 ms-2">
-                ${{ '%.2f' % (price * (1 - discount / 100)) }}
+                ₹{{ '%.2f' % (price * (1 - discount / 100)) }}
                 ({{ discount|int }}% OFF)
             </span>
             {% else %}
