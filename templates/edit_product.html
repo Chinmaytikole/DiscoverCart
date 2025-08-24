@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Product: {{ product.name }} - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Edit Product</h1>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('product_view', slug=product.slug) }}" class="btn btn-outline-primary" target="_blank">
+                        <i data-feather="eye" class="me-1"></i>
+                        Preview
+                    </a>
+                    <a href="{{ url_for('chinmay_control_panel') }}" class="btn btn-outline-secondary">
+                        <i data-feather="arrow-left" class="me-1"></i>
+                        Back to Admin
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('update_product', product_id=product.id) }}">
+        <div class="row">
+            <!-- Basic Information -->
+            <div class="col-lg-8">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i data-feather="edit" class="me-2"></i>
+                            Basic Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label for="name" class="form-label">Product Name *</label>
+                                <input type="text" class="form-control" id="name" name="name" value="{{ product.name }}" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="section_id" class="form-label">Section *</label>
+                                <select class="form-select" id="section_id" name="section_id" required>
+                                    {% for section in sections %}
+                                    <option value="{{ section.id }}" {% if section.id == product.section_id %}selected{% endif %}>
+                                        {{ section.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="affiliate_link" class="form-label">Affiliate Link *</label>
+                            <input type="url" class="form-control" id="affiliate_link" name="affiliate_link" value="{{ product.affiliate_link }}" required>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="price" class="form-label">Price</label>
+                                <input type="text" class="form-control" id="price" name="price" value="{{ product.price or '' }}" placeholder="$299.99">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="discount_percentage" class="form-label">Discount %</label>
+                                <input type="number" class="form-control" id="discount_percentage" name="discount_percentage" 
+                                       value="{{ product.discount_percentage or '' }}" min="0" max="100" step="0.01" placeholder="15">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="image_url" class="form-label">Image URL</label>
+                                <input type="url" class="form-control" id="image_url" name="image_url" value="{{ product.image_url or '' }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content Sections -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i data-feather="file-text" class="me-2"></i>
+                                Product Content
+                            </h5>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="regenerate_ai" name="regenerate_ai">
+                                <label class="form-check-label" for="regenerate_ai">
+                                    <small>Regenerate all content with AI</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i data-feather="info" class="me-2"></i>
+                            <strong>Content Options:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li><strong>Manual Edit:</strong> Update the fields below to customize content</li>
+                                <li><strong>AI Regenerate:</strong> Check the box above to regenerate all content with AI (will overwrite manual changes)</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="short_description" class="form-label">Short Description</label>
+                            <textarea class="form-control" id="short_description" name="short_description" rows="3">{{ product.short_description or '' }}</textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="full_review" class="form-label">Full Review</label>
+                            <textarea class="form-control" id="full_review" name="full_review" rows="8">{{ product.full_review or '' }}</textarea>
+                            <div class="form-text">Supports Markdown formatting</div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="pros" class="form-label">Pros (comma-separated)</label>
+                                <textarea class="form-control" id="pros" name="pros" rows="3" placeholder="Great battery life, Excellent display, Fast performance">{{ pros|join(', ') if pros else '' }}</textarea>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="cons" class="form-label">Cons (comma-separated)</label>
+                                <textarea class="form-control" id="cons" name="cons" rows="3" placeholder="Expensive, Heavy, Limited storage">{{ cons|join(', ') if cons else '' }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SEO Settings -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i data-feather="search" class="me-2"></i>
+                            SEO Settings
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="seo_title" class="form-label">SEO Title</label>
+                            <input type="text" class="form-control" id="seo_title" name="seo_title" value="{{ product.seo_title or '' }}" maxlength="60">
+                            <div class="form-text">Recommended: Under 60 characters</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="meta_description" class="form-label">Meta Description</label>
+                            <textarea class="form-control" id="meta_description" name="meta_description" rows="3" maxlength="160">{{ product.meta_description or '' }}</textarea>
+                            <div class="form-text">Recommended: Under 160 characters</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Preview Card -->
+                <div class="card shadow-sm mb-4 position-sticky" style="top: 100px;">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i data-feather="eye" class="me-2"></i>
+                            Product Preview
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        {% if product.image_url %}
+                        <img src="{{ product.image_url }}" class="img-fluid rounded mb-3" alt="{{ product.name }}" style="max-height: 200px; width: 100%; object-fit: cover;">
+                        {% else %}
+                        <div class="bg-light rounded d-flex align-items-center justify-content-center mb-3" style="height: 200px;">
+                            <i data-feather="image" class="text-muted" style="width: 48px; height: 48px;"></i>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="mb-2">
+                            <span class="badge bg-primary">{{ product.section.name }}</span>
+                            {% if product.price %}
+                            <span class="badge bg-success ms-1">{{ product.price }}</span>
+                            {% endif %}
+                        </div>
+                        
+                        <h6 class="fw-bold">{{ product.name }}</h6>
+                        <p class="text-muted small">{{ product.short_description[:100] if product.short_description else 'No description available' }}...</p>
+                        
+                        <div class="d-grid gap-2">
+                            <a href="{{ product.affiliate_link }}" target="_blank" class="btn btn-primary btn-sm">
+                                <i data-feather="external-link" class="me-1"></i>
+                                View Product
+                            </a>
+                            <a href="{{ url_for('product_view', slug=product.slug) }}" target="_blank" class="btn btn-outline-secondary btn-sm">
+                                <i data-feather="eye" class="me-1"></i>
+                                Preview Page
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Stats -->
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i data-feather="bar-chart" class="me-2"></i>
+                            Product Stats
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="border-end">
+                                    <div class="fw-bold">{{ product.created_at.strftime('%b %d') }}</div>
+                                    <small class="text-muted">Created</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="fw-bold">{{ product.updated_at.strftime('%b %d') if product.updated_at else 'Never' }}</div>
+                                <small class="text-muted">Updated</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body text-center">
+                        <button type="submit" class="btn btn-success btn-lg me-3">
+                            <i data-feather="save" class="me-2"></i>
+                            Update Product
+                        </button>
+                        <a href="{{ url_for('chinmay_control_panel') }}" class="btn btn-outline-secondary btn-lg">
+                            Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+// Auto-save functionality and form enhancements
+document.addEventListener('DOMContentLoaded', function() {
+    // Character counters for SEO fields
+    const seoTitle = document.getElementById('seo_title');
+    const metaDescription = document.getElementById('meta_description');
+    
+    if (seoTitle) {
+        const titleCounter = document.createElement('small');
+        titleCounter.className = 'text-muted';
+        seoTitle.parentNode.appendChild(titleCounter);
+        
+        seoTitle.addEventListener('input', function() {
+            const length = this.value.length;
+            titleCounter.textContent = `${length}/60 characters`;
+            titleCounter.className = length > 60 ? 'text-danger' : 'text-muted';
+        });
+        seoTitle.dispatchEvent(new Event('input'));
+    }
+    
+    if (metaDescription) {
+        const descCounter = document.createElement('small');
+        descCounter.className = 'text-muted';
+        metaDescription.parentNode.appendChild(descCounter);
+        
+        metaDescription.addEventListener('input', function() {
+            const length = this.value.length;
+            descCounter.textContent = `${length}/160 characters`;
+            descCounter.className = length > 160 ? 'text-danger' : 'text-muted';
+        });
+        metaDescription.dispatchEvent(new Event('input'));
+    }
+    
+    // Warning when AI regenerate is checked
+    const regenCheckbox = document.getElementById('regenerate_ai');
+    const contentFields = ['short_description', 'full_review', 'pros', 'cons', 'seo_title', 'meta_description'];
+    
+    regenCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            const confirmed = confirm('This will regenerate ALL content using AI and overwrite your manual changes. Are you sure?');
+            if (!confirmed) {
+                this.checked = false;
+                return;
+            }
+            
+            // Disable manual content fields when AI regeneration is selected
+            contentFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    field.disabled = true;
+                    field.style.opacity = '0.6';
+                }
+            });
+        } else {
+            // Re-enable fields
+            contentFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    field.disabled = false;
+                    field.style.opacity = '1';
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

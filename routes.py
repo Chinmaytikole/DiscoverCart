@@ -5,6 +5,7 @@ from ai_service import generate_product_content, generate_section_description
 from auth import requires_auth
 import re
 import json
+import datetime
 import os
 
 def create_slug(text):
@@ -205,6 +206,184 @@ def delete_section(section_id):
     db.session.commit()
     flash(f'Section "{section.name}" deleted successfully!', 'success')
     return redirect(url_for('chinmay_control_panel'))
+
+# Add these new routes to your existing routes.py file
+
+@app.route('/chinmay_control_panel/product/edit/<int:product_id>', methods=['GET'])
+@requires_auth
+def edit_product_form(product_id):
+    """Show product edit form"""
+    product = Product.query.get_or_404(product_id)
+    sections = Section.query.all()
+    
+    # Parse pros and cons from JSON strings for editing
+    try:
+        pros = json.loads(product.pros) if product.pros else []
+        cons = json.loads(product.cons) if product.cons else []
+    except:
+        pros = []
+        cons = []
+    
+    return render_template('edit_product.html', 
+                         product=product, 
+                         sections=sections, 
+                         pros=pros, 
+                         cons=cons)
+
+@app.route('/chinmay_control_panel/product/update/<int:product_id>', methods=['POST'])
+@requires_auth
+def update_product(product_id):
+    """Update existing product"""
+    product = Product.query.get_or_404(product_id)
+    
+    name = request.form.get('name', '').strip()
+    affiliate_link = request.form.get('affiliate_link', '').strip()
+    section_id = request.form.get('section_id')
+    price = request.form.get('price', '').strip()
+    image_url = request.form.get('image_url', '').strip()
+    discount_percentage = request.form.get('discount_percentage', '').strip()
+    
+    # Manual content fields (optional - user can edit AI content)
+    short_description = request.form.get('short_description', '').strip()
+    full_review = request.form.get('full_review', '').strip()
+    seo_title = request.form.get('seo_title', '').strip()
+    meta_description = request.form.get('meta_description', '').strip()
+    
+    # Pros and cons as comma-separated values
+    pros_text = request.form.get('pros', '').strip()
+    cons_text = request.form.get('cons', '').strip()
+    
+    # Check if regenerate AI content is requested
+    regenerate_ai = request.form.get('regenerate_ai') == 'on'
+    
+    if not name or not affiliate_link or not section_id:
+        flash('Product name, affiliate link, and section are required', 'error')
+        return redirect(url_for('edit_product_form', product_id=product_id))
+    
+    section = Section.query.get(section_id)
+    if not section:
+        flash('Invalid section selected', 'error')
+        return redirect(url_for('edit_product_form', product_id=product_id))
+    
+    try:
+        # Update basic product info
+        product.name = name
+        product.affiliate_link = affiliate_link
+        product.section_id = section_id
+        product.price = price
+        product.image_url = image_url
+        
+        # Handle discount percentage
+        if discount_percentage:
+            try:
+                product.discount_percentage = float(discount_percentage)
+            except ValueError:
+                product.discount_percentage = 0.0
+        else:
+            product.discount_percentage = 0.0
+        
+        # Update slug if name changed
+        new_slug = create_slug(name)
+        if new_slug != product.slug:
+            counter = 1
+            original_slug = new_slug
+            
+            # Ensure unique slug
+            while Product.query.filter(Product.slug == new_slug, Product.id != product_id).first():
+                new_slug = f"{original_slug}-{counter}"
+                counter += 1
+            
+            product.slug = new_slug
+        
+        # Handle AI content regeneration or manual updates
+        if regenerate_ai:
+            flash('Regenerating AI content... This may take a moment.', 'info')
+            ai_content = generate_product_content(name, affiliate_link, section.name, price)
+            
+            product.short_description = ai_content['short_description']
+            product.full_review = ai_content['full_review']
+            product.pros = json.dumps(ai_content['pros'])
+            product.cons = json.dumps(ai_content['cons'])
+            product.seo_title = ai_content['seo_title']
+            product.meta_description = ai_content['meta_description']
+            
+            flash(f'Product "{name}" updated with new AI-generated content!', 'success')
+        else:
+            # Update with manual content if provided
+            if short_description:
+                product.short_description = short_description
+            if full_review:
+                product.full_review = full_review
+            if seo_title:
+                product.seo_title = seo_title
+            if meta_description:
+                product.meta_description = meta_description
+            
+            # Handle pros and cons
+            if pros_text:
+                pros_list = [p.strip() for p in pros_text.split(',') if p.strip()]
+                product.pros = json.dumps(pros_list)
+            
+            if cons_text:
+                cons_list = [c.strip() for c in cons_text.split(',') if c.strip()]
+                product.cons = json.dumps(cons_list)
+            
+            flash(f'Product "{name}" updated successfully!', 'success')
+        
+        # Update timestamp
+        product.updated_at = datetime.utcnow()
+        
+        db.session.commit()
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error updating product: {str(e)}', 'error')
+        return redirect(url_for('edit_product_form', product_id=product_id))
+    
+    return redirect(url_for('chinmay_control_panel'))
+
+@app.route('/chinmay_control_panel/product/quick-edit/<int:product_id>', methods=['POST'])
+@requires_auth
+def quick_edit_product(product_id):
+    """Quick edit for basic product info via AJAX"""
+    product = Product.query.get_or_404(product_id)
+    
+    field = request.form.get('field')
+    value = request.form.get('value', '').strip()
+    
+    try:
+        if field == 'name':
+            product.name = value
+            # Update slug if name changed
+            new_slug = create_slug(value)
+            counter = 1
+            original_slug = new_slug
+            
+            while Product.query.filter(Product.slug == new_slug, Product.id != product_id).first():
+                new_slug = f"{original_slug}-{counter}"
+                counter += 1
+            
+            product.slug = new_slug
+            
+        elif field == 'price':
+            product.price = value
+        elif field == 'affiliate_link':
+            product.affiliate_link = value
+        elif field == 'image_url':
+            product.image_url = value
+        elif field == 'discount_percentage':
+            product.discount_percentage = float(value) if value else 0.0
+        else:
+            return jsonify({'success': False, 'error': 'Invalid field'})
+        
+        product.updated_at = datetime.utcnow()
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': f'{field.title()} updated successfully'})
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
 
 # Error handlers
 @app.errorhandler(404)
