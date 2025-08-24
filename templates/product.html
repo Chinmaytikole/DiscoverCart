@@ -31,13 +31,26 @@
         </div>
 
         <!-- Product Info -->
-        <div class="col-lg-7">
-            <div class="mb-3">
-                <span class="badge bg-primary fs-6 mb-2">{{ product.section.name }}</span>
-                {% if product.price %}
-                <span class="badge bg-success fs-6 mb-2 ms-2">{{ product.price }}</span>
-                {% endif %}
-            </div>
+        <div class="mb-3">
+            <span class="badge bg-primary fs-6 mb-2">{{ product.section.name }}</span>
+            {% if product.price %}
+            {% set price = product.price|float %}
+            {% set discount = product.discount_percentage|float %}
+            {% if discount > 0 %}
+            <span class="badge bg-danger fs-6 mb-2 ms-2" style="text-decoration: line-through;">
+                ${{ '%.2f' % price }}
+            </span>
+            <span class="badge bg-success fs-6 mb-2 ms-2">
+                ${{ '%.2f' % (price - (price * discount / 100)) }}
+                ({{ discount|int }}% OFF)
+            </span>
+            {% else %}
+            <span class="badge bg-success fs-6 mb-2 ms-2">
+                ${{ '%.2f' % price }}
+            </span>
+            {% endif %}
+            {% endif %}
+        </div>
             
             <h1 class="display-5 fw-bold mb-3">{{ product.name }}</h1>
             <p class="lead text-muted mb-4">{{ product.short_description }}</p>

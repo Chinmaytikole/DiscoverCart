@@ -20,6 +20,9 @@ class Product(db.Model):
     price = db.Column(db.String(50))
     image_url = db.Column(db.Text)
     
+    # Add discount percentage field
+    discount_percentage = db.Column(db.Float, default=0.0)  # New field
+    
     # AI Generated Content
     short_description = db.Column(db.Text)
     full_review = db.Column(db.Text)
@@ -35,6 +38,16 @@ class Product(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
+    # Search functionality
+    @classmethod
+    def search(cls, query):
+        return cls.query.filter(
+            db.or_(
+                cls.name.contains(query),
+                cls.short_description.contains(query),
+                cls.full_review.contains(query)
+            )
+        ).all()
     # Search functionality
     @classmethod
     def search(cls, query):
