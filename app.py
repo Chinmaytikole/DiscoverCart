@@ -29,8 +29,14 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 # Use PostgreSQL on Render, SQLite locally
 database_url = os.environ.get("DATABASE_URL")
 if database_url and database_url.startswith("postgres://"):
+     @db.event.listens_for(db.engine, "connect")
+    def set_search_path(dbapi_connection, connection_record):
+        cursor = dbapi_connection.cursor()
+        cursor.execute('SET search_path TO public')
+        cursor.close()
     # Render gives old-style URL; SQLAlchemy needs "postgresql://"
     database_url = database_url.replace("postgres://", "postgresql://", 1)
+    
 
 app.config["SQLALCHEMY_DATABASE_URI"] = database_url or "sqlite:///affiliate_site.db"
 
