@@ -126,60 +126,66 @@ def add_section():
 @app.route('/chinmay_control_panel/product/add', methods=['POST'])
 @requires_auth
 def add_product():
-    """Add a new product with AI-generated content"""
-    name = request.form.get('name', '').strip()
-    affiliate_link = request.form.get('affiliate_link', '').strip()
-    section_id = request.form.get('section_id')
-    price = request.form.get('price', '').strip()
-    image_url = request.form.get('image_url', '').strip()
-    
-    if not name or not affiliate_link or not section_id:
-        flash('Product name, affiliate link, and section are required', 'error')
-        return redirect(url_for('chinmay_control_panel'))
-    
-    section = Section.query.get(section_id)
-    if not section:
-        flash('Invalid section selected', 'error')
-        return redirect(url_for('chinmay_control_panel'))
-    
-    slug = create_slug(name)
-    counter = 1
-    original_slug = slug
-    
-    # Ensure unique slug
-    while Product.query.filter_by(slug=slug).first():
-        slug = f"{original_slug}-{counter}"
-        counter += 1
-    
+    """Add a new product with AI-generated content and discount"""
     try:
+        # Get form data
+        name = request.form.get('name', '').strip()
+        affiliate_link = request.form.get('affiliate_link', '').strip()
+        section_id = request.form.get('section_id')
+        price = request.form.get('price', '').strip()
+        discount = request.form.get('discount_percentage', '').strip()
+        image_url = request.form.get('image_url', '').strip()
+
+        # Basic validations
+        if not name or not affiliate_link or not section_id:
+            flash('Product name, affiliate link, and section are required', 'error')
+            return redirect(url_for('chinmay_control_panel'))
+
+        section = Section.query.get(section_id)
+        if not section:
+            flash('Invalid section selected', 'error')
+            return redirect(url_for('chinmay_control_panel'))
+
+        # Generate unique slug
+        slug = create_slug(name)
+        counter = 1
+        original_slug = slug
+        while Product.query.filter_by(slug=slug).first():
+            slug = f"{original_slug}-{counter}"
+            counter += 1
+
         # Generate AI content
         flash('Generating AI content... This may take a moment.', 'info')
         ai_content = generate_product_content(name, affiliate_link, section.name, price)
-        
-        # Create product
-        product = Product()
-        product.name = name
-        product.slug = slug
-        product.affiliate_link = affiliate_link
-        product.section_id = section_id
-        product.price = price
-        product.image_url = image_url
-        product.short_description = ai_content['short_description']
-        product.full_review = ai_content['full_review']
-        product.pros = json.dumps(ai_content['pros'])
-        product.cons = json.dumps(ai_content['cons'])
-        product.seo_title = ai_content['seo_title']
-        product.meta_description = ai_content['meta_description']
-        
+
+        # Create product instance
+        product = Product(
+            name=name,
+            slug=slug,
+            affiliate_link=affiliate_link,
+            section_id=section_id,
+            price=float(price) if price else None,
+            discount_percentage=float(discount) if discount else 0,
+            image_url=image_url,
+            short_description=ai_content['short_description'],
+            full_review=ai_content['full_review'],
+            pros=json.dumps(ai_content['pros']),
+            cons=json.dumps(ai_content['cons']),
+            seo_title=ai_content['seo_title'],
+            meta_description=ai_content['meta_description']
+        )
+
+        # Save to DB
         db.session.add(product)
         db.session.commit()
-        
+
         flash(f'Product "{name}" added successfully with AI-generated content!', 'success')
-        
+    
     except Exception as e:
         flash(f'Error adding product: {str(e)}', 'error')
-    
+
     return redirect(url_for('chinmay_control_panel'))
+
 
 @app.route('/chinmay_control_panel/product/delete/<int:product_id>', methods=['POST'])
 @requires_auth
